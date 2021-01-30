@@ -148,13 +148,13 @@ elopment_ai_accept_modifier = { #Should copy marriage_ai_accept_modifier on rele
 		}
         
         #####
-        ## Love (or lust) can transcend all... I guess
+        ## This ensures that the faith check only occurs if the target is zealous
         #####
 
         scope:recipient = {
             has_trait = zealous
         }
-        
+
 		add = {
 			value = -10
 			if = {

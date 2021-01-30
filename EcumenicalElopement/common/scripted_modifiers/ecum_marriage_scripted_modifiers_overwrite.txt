@@ -1,0 +1,249 @@
+elopment_ai_accept_modifier = { #Should copy marriage_ai_accept_modifier on relevant points, note: there are no secondary targets
+	############
+	# ELOPMENT #
+	############
+
+	modifier = {
+		NOT = { has_relation_soulmate = scope:actor }
+		add = {
+			value = -25
+			if = {
+				limit = {
+					is_married = yes
+				}
+				add = -25
+			}
+		}
+		desc = AI_ELOPE_CONSEQUENCES
+	}
+
+
+	#########
+	# PERKS #
+	#########
+	modifier = { # A lot of acceptance for yourself - you are likely already married, thus you need motivation to get rid of your spouse to marry someone better
+		scope:actor = { has_perk = promising_prospects_perk }
+		add = promising_prospects_self_value
+		desc = PROMISING_PROSPECTS_PERK_MODIFIER
+	}
+	modifier = { # Dynasty Glory Perk acceptance,
+		exists = scope:actor.dynasty
+		scope:actor.dynasty = { has_dynasty_perk = glory_legacy_1 }
+		add = glory_legacy_1_marriage_acceptance
+		desc = DYNASTY_LEGACY_GLORY_MARRIAGE_ACCEPTANCE_PERK_MODIFIER
+	}
+
+	############
+	# OPINIONS #
+	############
+	opinion_modifier = { # More likely to accept if Recipient likes the person the Actor offers for marriage
+		who = scope:recipient
+		opinion_target = scope:actor
+		multiplier = 1
+		desc = AI_OPINION_REASON
+	}
+
+	opinion_modifier = {
+		trigger = { exists = scope:recipient.primary_spouse }
+		who = scope:recipient
+		opinion_target = scope:recipient.primary_spouse
+		multiplier = -1
+		desc = AI_SPOUSE_OPINION
+	}
+
+
+	####################
+	# TIER DIFFERENCES #
+	####################
+	modifier = {
+		exists = scope:recipient.liege.dynasty
+		scope:recipient = {
+			OR = {
+				AND = {
+					exists = dynasty
+					dynasty = scope:recipient.liege.dynasty
+				}
+				is_close_or_extended_family_of = scope:recipient.liege
+				is_spouse_of = scope:recipient.liege
+			}
+		}
+		scope:actor.primary_title.tier > scope:recipient.liege.primary_title.tier
+		add = {
+			value = scope:actor.highest_held_title_tier
+			subtract = scope:recipient.liege.highest_held_title_tier
+			multiply = 30
+		}
+		desc = MARRYING_UP_REASON
+	}
+	
+	modifier = {
+		exists = scope:recipient.liege.dynasty
+		scope:recipient = {
+			OR = {
+				AND = {
+					exists = dynasty
+					dynasty = scope:recipient.liege.dynasty
+				}
+				is_close_or_extended_family_of = scope:recipient.liege
+				is_spouse_of = scope:recipient.liege
+			}
+		}
+		scope:actor.primary_title.tier < scope:recipient.liege.primary_title.tier
+		add = {
+			value = scope:actor.highest_held_title_tier
+			subtract = scope:recipient.liege.highest_held_title_tier
+			if = {
+				limit = { scope:actor.highest_held_title_tier = tier_kingdom }
+				multiply = 25
+			}
+			else = {
+				multiply = 35
+			}
+		}
+		desc = MARRYING_DOWN_REASON
+	}
+
+	
+
+	
+	###########################
+	# DYNASTY PRESTIGE LEVELS #
+	###########################
+	modifier = {
+		scope:actor = {
+			OR = {
+				has_dynasty = no
+				scope:actor = {
+					has_dynasty = yes
+					dynasty.dynasty_prestige_level = 0
+				}
+			}
+		}
+		add = -5
+		desc = AI_DYNASTY_PRESTIGE_REASON
+	}
+	modifier = {
+		scope:actor = {
+			has_dynasty = yes
+			dynasty.dynasty_prestige_level >= 2
+		}
+		add = {
+			value = scope:actor.dynasty.dynasty_prestige_level
+			multiply = 5
+			subtract = 5 #At 0 dynasty prestige level, there should be a penalty
+		}
+		desc = AI_DYNASTY_PRESTIGE_REASON
+	}
+
+
+	#########
+	# FAITH #
+	#########
+	modifier = { # A recipient will be reluctant (to differing degrees) to agree to marriages sent from an actor of a different faith
+		scope:recipient.faith = {
+			faith_hostility_level = {
+				target = scope:actor.faith
+				value > faith_fully_accepted_level
+			}
+		}
+        
+        #####
+        ## Love (or lust) can transcend all... I guess
+        #####
+
+        scope:recipient = {
+            has_trait = zealous
+        }
+        
+		add = {
+			value = -10
+			if = {
+				limit = {
+					scope:recipient.faith = {
+						faith_hostility_level = {
+							target = scope:actor.faith
+							value > faith_astray_level
+						}
+					}
+				}
+				subtract = 15
+			}
+			if = {
+				limit = {
+					scope:recipient.faith = {
+						faith_hostility_level = {
+							target = scope:actor.faith
+							value >= faith_hostility_prevents_marriage_level
+						}
+					}
+				}
+				subtract = 975
+			}
+		}
+		
+		desc = MARRY_DIFFERENT_FAITH_REASON
+	}
+	
+	##################
+	# MISC PENALTIES #
+	##################
+	modifier = {
+		scope:recipient.liege = { has_weak_hook = scope:recipient }
+		desc = AI_ELOPE_WEAK_HOOK
+		add = -15
+	}
+
+	modifier = {
+		scope:recipient.liege = { has_strong_hook = scope:recipient }
+		desc = AI_ELOPE_STRONG_HOOK
+		add = -100
+	}
+
+	modifier = {
+		scope:recipient = {
+			any_heir_title = {
+				place_in_line_of_succession = {
+					target = scope:recipient
+					value <= 1
+				}
+			}
+		}
+		desc = AI_ELOPE_INHERITANCE
+		add = -75
+	}
+
+	modifier = {
+		scope:recipient = {
+			NOT = {
+				any_heir_title = {
+					place_in_line_of_succession = {
+						target = scope:recipient
+						value <= 1
+					}
+				}
+			}
+			any_heir_title = {
+				place_in_line_of_succession = {
+					target = scope:recipient
+					value <= 3
+				}
+			}
+		}
+		desc = AI_ELOPE_POSSIBLE_INHERITANCE
+		add = -30
+	}
+
+	#########################
+	# FAMILY CONSIDERATIONS #
+	#########################
+
+	modifier = {
+		add = -1000
+		scope:recipient.faith = {
+			NOT = {
+				faith_allows_marriage_consanguinity_trigger = { CHARACTER_1 = scope:recipient CHARACTER_2 = scope:actor }
+			}
+		}
+		desc = MARRY_CONSANGUINITY_REASON
+	}
+}

@@ -3,5 +3,5 @@ tags={
 	"Schemes"
 }
 name="Ecumenical Elopement"
-supported_version="1.2.*"
+supported_version="1.5.*"
 path="mod/EcumenicalElopement"

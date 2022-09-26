@@ -3,4 +3,4 @@ tags={
 	"Schemes"
 }
 name="Ecumenical Elopement"
-supported_version="1.6.*"
+supported_version="1.7.*"
